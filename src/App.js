@@ -1,25 +1,35 @@
-import logo from './logo.svg';
+import {useState} from 'react'
 import './App.css';
+import Form from './Form';
+import { Route, Routes } from 'react-router-dom';
+import Login from './Login';
+import Register from './Register';
+import ProductsForm from './ProductsForm';
+import ProductsPage from './ProductsPage';
+import ProductDetailsPage from './ProductDetailsPage';
 
 function App() {
+  const [user, setUser] = useState({
+    userName: '',
+    password: '',
+  });
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Routes>
+        <Route path='login' element = { <Login user={user} setUser={setUser} />}/>
+        <Route path='register' element = { <Register user={user} setUser={setUser} />}/>
+        <Route path='productsform' element = { <ProductsForm/>}/>
+        <Route path='products' element = { <ProductsPage/>}/>
+        <Route path='products/:id' element = { <ProductDetailsPage/>}/>
+      </Routes>
     </div>
   );
 }
 
 export default App;
+
+/* TO do: 
+  *display products
+  
+*/
