@@ -1,47 +1,29 @@
 import React, { useEffect, useState } from 'react'
+import { getCategoriesList } from './services/CategoriesServices';
 
-const CategoriesSelect = ({onCategoryChange, newCategory,categoryInput, setCategoryInput}) => {
+const CategoriesSelect = ({handleCategoryChange, newCategory, handleNewCategoryInput, selectedCategory, categoryInput}) => {
     const [categories, setCategories] = useState([]);
-    const [selectedCategory, setSelectedCategory] = useState('');
-    const [inputValue, setInputValue] = useState('');
 
+    //Maybe add the submit button here, to fetch the categories again when it sends a new category
     useEffect(() => {
-        const categoriesURL = "http://localhost:3500/categories";
-        const fetchData = async() => {
+        const fetchCategories = async () => {
             try {
-                console.log("called");
-                const response = await fetch(categoriesURL, {
-                    method: "GET"
-                });
-                if (!response.ok){
-                    const message = response.status;
-                    throw new Error(message);
-                }
-                const data = await response.json();
-                setCategories(data);
+                const categoriesList = await getCategoriesList();
+                setCategories(categoriesList);        
             } catch (error) {
                 console.error(error);
             }
-        };
-        fetchData();
+        }
+        fetchCategories();
     }, []);
 
-    const handleCategoryChange = (event) => {
-        const selectedValue = event.target.value;
-        setSelectedCategory(selectedValue);
-        onCategoryChange({ target: { name: 'categoryId', value: selectedValue}});
-    };
+    
 
-    const handleNewCategoryInputChange = (event) => {
-        const {value} = event.target;
-        setInputValue(value);
-        setCategoryInput(value);
-    }
     if (newCategory === false) {
         return (
             <div>
                 <label htmlFor='category'>Select Category:</label>
-                <select name='category' value={selectedCategory} onChange={handleCategoryChange}>
+                <select name='category' value={selectedCategory} onChange={(e) => handleCategoryChange(e.target.value)}>
                     <option value="">Select a category</option>
                     {categories.map(category => (
                         <option key={category.category_id} value={category.category_id}>
@@ -51,7 +33,6 @@ const CategoriesSelect = ({onCategoryChange, newCategory,categoryInput, setCateg
                 </select>
             </div>
         )
-
     } else {
         return (
             <div>
@@ -60,12 +41,11 @@ const CategoriesSelect = ({onCategoryChange, newCategory,categoryInput, setCateg
                     type='text'
                     name='newCategory'
                     value={categoryInput}
-                    onChange={handleNewCategoryInputChange}
+                    onChange={handleNewCategoryInput}
                 />
             </div>
         )
-    }
-    
+    } 
 }
 
 export default CategoriesSelect
