@@ -29,6 +29,7 @@ const Login = ({ user, setUser }) => {
         <h2>Login Page</h2>
         <Form user={user} setUser={setUser} handleSubmit={handleSubmit} />
         <Link to={"/productsform"} className='link' >Click here to Products Form</Link>
+        <Link to={"/products"} className='link' >Click here to Products</Link>
     </main>
   )
 }

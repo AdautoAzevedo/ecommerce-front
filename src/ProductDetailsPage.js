@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom';
+import { addProductToCart, viewCart } from './services/ProductsServices';
+import { useAuth } from './context/AuthContext';
 
 const ProductDetailsPage = () => {
     const [product, setProduct] = useState(null);
+    const {authToken} = useAuth();
     const params = useParams();
+    
     useEffect(() => {
         const getProductDetails = async () => {
             console.log(params);
@@ -30,8 +34,11 @@ const ProductDetailsPage = () => {
         getProductDetails();
     }, []);
 
-    const addToCart = () => {
-        console.log("Added to cart: ", product);
+    const addToCart = async () => {
+        console.log("AuthToken no component: ", authToken);
+        console.log( await addProductToCart(product.product_id, authToken));
+        const cartContents = await viewCart(authToken);
+        console.log("CART CONTENTS: ", cartContents);
     };
 
     if (!product) {
