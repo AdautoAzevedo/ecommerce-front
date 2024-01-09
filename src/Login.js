@@ -23,7 +23,7 @@ const Login = ({ user, setUser }) => {
     console.log("logging in...");
     sendLoginRequest();
   };
-
+  //Add a visible message for wrong password
   return (
     <main>
         <h2>Login Page</h2>

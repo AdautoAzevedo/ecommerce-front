@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom';
-import { addProductToCart, viewCart } from './services/ProductsServices';
+import { addProductToCart, viewCart } from './services/CartServices';
 import { useAuth } from './context/AuthContext';
 
 const ProductDetailsPage = () => {

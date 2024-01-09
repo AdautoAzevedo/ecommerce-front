@@ -7,6 +7,7 @@ import Register from './Register';
 import ProductsForm from './ProductsForm';
 import ProductsPage from './ProductsPage';
 import ProductDetailsPage from './ProductDetailsPage';
+import CartPage from './CartPage';
 
 function App() {
   const [user, setUser] = useState({
@@ -21,6 +22,7 @@ function App() {
         <Route path='register' element = { <Register user={user} setUser={setUser} />}/>
         <Route path='productsform' element = { <ProductsForm/>}/>
         <Route path='products' element = { <ProductsPage/>}/>
+        <Route path='cartpage' element = { <CartPage />}/>
         <Route path='products/:id' element = { <ProductDetailsPage/>}/>
       </Routes>
     </div>

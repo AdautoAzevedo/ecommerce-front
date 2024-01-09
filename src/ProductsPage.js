@@ -39,7 +39,7 @@ const ProductsPage = () => {
                 </li>
             ))}
         </ul>
-        <button onClick={getProductList}> Get products </button>
+        <Link to={"/cartpage"} className= 'link'> View Cart </Link>
     </main>
   )
 }
