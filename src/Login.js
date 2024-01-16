@@ -6,7 +6,7 @@ import { userLogin } from './services/AuthServices';
 
 const Login = ({ user, setUser }) => {
 
-  const navigate = useNavigate();
+  
   const { setToken } = useAuth();
 
   const sendLoginRequest = async ()  =>{

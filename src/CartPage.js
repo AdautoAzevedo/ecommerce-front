@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from './context/AuthContext';
 import { removeCartItem, viewCart, updateItemInCart } from './services/CartServices';
+import { sendOrderRequest } from './services/OrderServices';
+import OrderComponent from './OrderComponent';
+import CartItemsComponent from './components/CartItemsComponent';
 
 const CartPage = () => {
     const [cart, setCart] = useState({ total_price: 0, items: [] });
+    const [orderDetails, setOrderDetails] = useState({order_id: 0, total_price: 0, order_items: [{}] });
+    const [showOrderDetails, setShowOrderDetails] = useState(false);
     const {authToken} = useAuth();
 
     useEffect(() => {
@@ -16,13 +21,10 @@ const CartPage = () => {
             }
         }
         fetchCart();
-        console.log(cart);
     }, []);
 
     const handleUpdateQuantity = async (itemId, updatedQuantity) => {
         try {
-            console.log("Id: ", itemId);
-            console.log("Quantity: ", updatedQuantity);
             await updateItemInCart(itemId, updatedQuantity, authToken);
             const updatedCart = await viewCart(authToken);
             setCart(updatedCart);
@@ -33,7 +35,6 @@ const CartPage = () => {
 
     const handleRemoveItem = async (itemId) => {
         try {
-            console.log("Deletando: ", itemId);
             await removeCartItem(itemId, authToken);
             const updatedCart = await viewCart(authToken);
             setCart(updatedCart);
@@ -41,25 +42,32 @@ const CartPage = () => {
             console.error(error);
         }
     }
+
+    const handleOrderRequest = async() => {
+        try {
+            const orderDetails = await sendOrderRequest(authToken);
+            console.log("Order details: ", orderDetails);
+            setOrderDetails(orderDetails.order);
+            setShowOrderDetails(true);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
     return (
-        <section>
-            <ul>
-                {cart.items.map((cartItem, index) => (
-                    <li className='cartItems' key={index}> 
-                        <div>
-                            <p>{cartItem.product_name}</p>
-                            <p>Quantity: {cartItem.quantity}</p>
-                            <p>Price: ${cartItem.total_price}</p>
-                            <button onClick={()=> handleUpdateQuantity(cartItem.item_id, cartItem.quantity+1)}>Increase Quantity</button>
-                            <button onClick={()=> handleUpdateQuantity(cartItem.item_id, cartItem.quantity-1)}>Decrease Quantity</button>
-                            <button onClick={()=> handleRemoveItem(cartItem.item_id)}>Remove item</button>
-                        </div>
-                    </li>
-                ))}
-            </ul>
-            <h3>Total price: {cart.total_price}</h3>
-        </section>
+        <main>
+            {showOrderDetails ? (
+            <OrderComponent orderDetails={orderDetails}/> 
+            ) : (
+            <CartItemsComponent 
+                cart={cart} 
+                handleUpdateQuantity={handleUpdateQuantity} 
+                handleRemoveItem={handleRemoveItem} 
+                handleOrderRequest={handleOrderRequest} 
+            />
+        )}
+        </main>
     )
-}
+};
 
 export default CartPage
