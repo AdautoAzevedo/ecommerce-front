@@ -1,66 +1,87 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useState } from 'react'
-import { useAuth } from './context/AuthContext';
-import { sendPaymentInfo } from './services/CardServices';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+
+const stripePromise = loadStripe('pk_test_51PiK85JiFsZgEagpbCLIudGCMvm8nBj3ouDZ4tXAaHYoEIm9d97A8kzExLk27KTxvC5tIKcwwhAtUPJPhlc7zv6S00rgGDuHXu');
 
 const CreditCardPage = () => {
+    const [succeeded, setSucceeded] = useState(false);
+    const [error, setError] = useState(null);
+    const [processing, setProcessing] = useState('');
+    const [disabled, setDisabled] = useState(true);
+    const [clientSecret, setClientSecret] = useState('');
 
-    const {authToken} = useAuth();
+    const stripe = useStripe();
+    const elements = useElements();
 
-    const [cardNumber, setCardNumber] = useState('');
-    const [expirationDate, setExpirationDate] = useState('');
-    const [cardholderName, setCardholderName] = useState('');
-    const [cvv, setCVV] = useState('');
+    const handleChange = (event) => {
+        setDisabled(event.empty);
+        setError(event.error ? event.error.message : '');
+    };
 
-    const handleCardInfoSubmit = async (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
+        setProcessing(true);
 
-        const cardInfo = {
-            cardNumber,
-            expirationDate,
-            cardholderName,
-            cvv,
+        const payload = await stripe.confirmCardPayment(clientSecret, {
+            payment_method: {
+                card: elements.getElement(CardElement),
+            },
+        });
+
+        if (payload.error) {
+            setError(`Payment failed ${payload.error.message}`);
+            setProcessing(false);
+        } else {
+            setError(null);
+            setProcessing(false);
+            setSucceeded(true);
+        }
+    };
+
+    useEffect(() => {
+        const createPaymentIntent = async () => {
+            try {
+                const response = await fetch('http://localhost:3500/payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({amount: 1000, currency: 'usd'}),
+                });
+
+                const data = await response.json();
+                setClientSecret(data.clientSecret);
+            } catch (error) {
+                setError(`Failed to create payment intent: ${error.message}`);
+            }
         };
 
-        const response = await sendPaymentInfo(cardInfo, authToken);
-        console.log(response);
-    }
+        createPaymentIntent();
+    }, []);
 
     return (
-        <section>
-            <form>
-                <label htmlFor='cardNumber'> Card Number: </label>
-                <input 
-                    type='text'
-                    name='cardNumber'
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(e.target.value)}    
-                />
-                <label htmlFor='expirationDate'> Expiration Date: </label>
-                <input 
-                    type='text'
-                    name='expirationDate'
-                    value={expirationDate}
-                    onChange={(e) => setExpirationDate(e.target.value)}    
-                />
-                <label htmlFor='cardHolderName'> Cardholder Name: </label>
-                <input 
-                    type='text'
-                    name='cardHolderName'
-                    value={cardholderName}
-                    onChange={(e) => setCardholderName(e.target.value)}    
-                />
-                <label htmlFor='cvv'> CVV: </label>
-                <input 
-                    type='text'
-                    name='cvv'
-                    value={cvv}
-                    onChange={(e) => setCVV(e.target.value)}    
-                />
-            </form>
-            <button onClick={handleCardInfoSubmit}>Submit</button>
-        </section>
+        <form id='payment-form' onSubmit={handleSubmit}>
+            <CardElement id='card-element' onChange={handleChange} />
+            <button disabled={processing || disabled || succeeded} id='submit'>
+                <span id='button-text'>
+                    {processing ? <div className='spinner' id='spinner'></div> : "Pay" }
+                </span>
+            </button>
+            {error && <div className='card-error' role='alert'>{error}</div>}
+            <p className= {succeeded ? 'result-messae' : 'result-message hidden'} >
+                Payment succeeded, see the result in your
+                <a href={`https://dashboard.stripe.com/test/payments`}> Stripe dashboard.</a> Refresh the page to pay again.
+            </p>
+        </form>
     )
 }
 
-export default CreditCardPage
+const StripeWrapper = () => (
+    <Elements stripe={stripePromise}>
+        <CreditCardPage />
+    </Elements>
+)
+
+export default StripeWrapper;
